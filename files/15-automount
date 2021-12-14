@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Copyright (C) 2015 OpenWrt.org
+
+# 0 yes blockdevice handles this - 1 no it is not there
+blkdev=`dirname $DEVPATH`
+basename=`basename $blkdev`
+device=`basename $DEVPATH`
+skip=`block info | sed 's/\(.*\): .*/\1/' | grep -q $device ; echo $?`
+path=$DEVPATH
+fdiskA
+if [ $basename != "block" ] && [ -z "${device##sd*}" ] && [ $skip -eq 1 ]; then
+	mntpnt=$device
+	case "$ACTION" in
+		add)
+			mkdir -p /mnt/$mntpnt
+			chmod 777 /mnt/$mntpnt
+			# Try to be gentle on solid state devices
+			mount -o rw,noatime,discard /dev/$device /mnt/$mntpnt
+			;;
+		remove)
+			# Once the device is removed, the /dev entry disappear. We need mountpoint
+			mountpoint=`mount |grep /dev/$device | sed 's/.* on \(.*\) type.*/\1/'`
+			umount -l $mountpoint
+			;;
+	esac
+fi
+
+fdiskA(){
+
+	for i in device ;
+	do
+		#Determine whether the specified directory is mounted
+		isR=`df -P|grep $i`
+		[ "$isR" != "" ] &&continue
+
+		#Determine whether there is an unpartitioned disk
+		isP=`fdisk -l /dev/$i |grep -v 'bytes'|grep "$i[1-9]*"`
+		if [ "$isP" = "" ];then
+				#Start partition
+				fdisk -S 56 /dev/$i << EOF
+n
+p
+1
+
+
+wq
+EOF
+
+			sleep 5
+			checkP=`fdisk -l /dev/$i|grep "/dev/${i}1"`
+			[ "$checkP" != "" ] && mkfs.ext4 /dev/${i}1
+		else
+			echo 'Test' > /mnt/$i/Test$i.check
+			if [ ! -f $setup_path/Test$i.check ];then
+					sed -i "/\/dev\/${i}1/d" /etc/fstab
+			else
+					rm -f $setup_path/Test$i.check
+			fi
+		fi
+	done
+}
