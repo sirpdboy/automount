@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# Copyright (C) 2015 OpenWrt.org
+
+# 0 yes blockdevice handles this - 1 no it is not there
+blkdev=`dirname $DEVPATH`
+basename=`basename $blkdev`
+device=`basename $DEVPATH`
+skip=`block info | sed 's/\(.*\): .*/\1/' | grep -q $device ; echo $?`
+path=$DEVPATH
+device2=`cat /proc/partitions|grep -v name|grep -v ram|awk '{print $4}'|grep -v '^$'|grep -v '[0-9]$'|grep -v 'vda'|grep -v 'xvda'|grep -v 'sda'|grep -e 'vd' -e 'sd' -e 'xvd' -e 'hd' -e 'md' -e 'mmcblk'`
+for i in $device;
+	do
+		#Determine whether the is mounted
+		isR=`df -P|grep $i`
+		if [ "$isR" = "" ];then
+				#Start partition
+				fdisk /dev/$i << EOF
+n
+p
+1
+
+
+wq
+EOF
+
+			sleep 5
+			checkP=`df -P|grep "/dev/${i}1"`
+			[ "$checkP" != "" ] &&echo y| mkfs.ext4 /dev/${i}1
+		fi
+done
+if [ "$device" ! = "$device2" ];then
+
+for i in $device2;
+	do
+		#Determine whether the is mounted
+		isR=`df -P|grep $i`
+		if [ "$isR" = "" ];then
+				#Start partition
+				fdisk /dev/$i << EOF
+n
+p
+1
+
+
+wq
+EOF
+
+			sleep 5
+			checkP=`df -P|grep "/dev/${i}1"`
+			[ "$checkP" != "" ] &&echo y| mkfs.ext4 /dev/${i}1
+		fi
+done
+fi
+
+if [ $basename != "block" ] && [ -z "${device##sd*}" ] && [ $skip -eq 1 ]; then
+	mntpnt=$device
+	case "$ACTION" in
+		add)
+			mkdir -p /mnt/$mntpnt
+			chmod 777 /mnt/$mntpnt
+			# Try to be gentle on solid state devices
+			mount -o rw,noatime,discard /dev/$device /mnt/$mntpnt
+			;;
+		remove)
+			# Once the device is removed, the /dev entry disappear. We need mountpoint
+			mountpoint=`mount |grep /dev/$device | sed 's/.* on \(.*\) type.*/\1/'`
+			umount -l $mountpoint
+			;;
+	esac
+fi
+
