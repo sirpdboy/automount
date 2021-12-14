@@ -1,17 +1,20 @@
 [![若部分图片无法正常显示，请挂上机场浏览或点这里到末尾看修复教程](https://visitor-badge.glitch.me/badge?page_id=sirpdboy-visitor-badge)](#解决-github-网页上图片显示失败的问题) [![](https://img.shields.io/badge/TG群-点击加入-FFFFFF.svg)](https://t.me/joinchat/AAAAAEpRF88NfOK5vBXGBQ)
 
-[automount  自动挂载格式化](https://github.com/sirpdboy/automount)
+[automount  自动挂载自动分区和格式化OPENWRT专用](https://github.com/sirpdboy/automount)
 ======================
 请 **认真阅读完毕** 本页面，本页面包含注意事项和如何使用。
 
 ## 功能说明：
 
-###  自动挂载格式化 来源LEAN大的 自动挂载脚本。修改增加自动分区格式化功能。充分可以利用未使用的分区。
+###  自动挂载自动分区和格式化功 来源LEAN大的  automount 自动挂载脚本。
+
+###  本着人人为我，我为人人的原则，增加自动分区和格式化功能。不敢独享，特分享出来，为OPENWRT添砖加瓦。
+
 
 ## 编译使用方法 [![](https://img.shields.io/badge/-编译使用方法-F5F5F5.svg)](#编译使用方法-)
 
-将automount添加至 LEDE/OpenWRT 源码的方法。
 
+### 将automount添加至 LEDE/OpenWRT 源码的方法。
 
 ### 下载源码方法：
 
